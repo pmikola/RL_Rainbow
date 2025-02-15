@@ -176,14 +176,19 @@ class QNetwork(nn.Module):
         self.linear1_a1 = nn.Linear(self.no_of_actions, self.input*2, bias=True)
         self.linear1_a2 = nn.Linear(self.no_of_actions, self.input*2, bias=True)
         self.linear1_c = nn.Linear(self.no_of_states * 2 , self.input*2, bias=True)
-        self.linear2 = nn.Linear(self.input*8, self.hidden_size, bias=True)
+        self.linear2 = nn.Linear(self.input*8, self.input*2, bias=True)
         self.head_groups = nn.ModuleDict({
-            "id0": MultiHeadLayer(self.hidden_size, self.no_of_actions),
-            "id1": MultiHeadLayer(self.hidden_size, self.no_of_actions),
-            "id2": MultiHeadLayer(self.hidden_size, self.no_of_actions)
+            "id0": MultiHeadLayer(self.input*2, self.no_of_actions),
+            "id1": MultiHeadLayer(self.input*2, self.no_of_actions),
+            "id2": MultiHeadLayer(self.input*2, self.no_of_actions)
         })
+        self.LNorm_a1 = nn.LayerNorm(self.input*2)
+        self.LNorm_a2 = nn.LayerNorm(self.input*2)
+        self.LNorm_a3 = nn.LayerNorm(self.input*2)
+        self.LNorm_c = nn.LayerNorm(self.input*2)
+
         self.LNorm1 = nn.LayerNorm(self.input*8)
-        self.LNorm2 = nn.LayerNorm(self.hidden_size)
+        self.LNorm2 = nn.LayerNorm(self.input*2)
         self.apply(self._init_weights)
         self.idx_to_str = {
             0: "id0",
@@ -209,6 +214,10 @@ class QNetwork(nn.Module):
         x1 = self.act(self.linear1_a1(action[1]))
         x2 = self.act(self.linear1_a2(action[2]))
         c = self.act(self.linear1_c(state))
+        x0 = self.LNorm_a1(x0)
+        x1 = self.LNorm_a2(x1)
+        x2 = self.LNorm_a3(x2)
+        c= self.LNorm_c(c)
         context_input = torch.cat([x0,x1,x2,c], dim=1)
         #x = self.LNorm1(context_input)
 
@@ -225,7 +234,6 @@ class QNetwork(nn.Module):
         o_3 = []
         i = 0
         for key in keys:
-
             x_key = x[i, :].unsqueeze(0)
             selected_heads = self.head_groups[key]
             ls_out = selected_heads(x_key)

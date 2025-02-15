@@ -49,7 +49,7 @@ class Agent:
 
         # self.optimizer = torch.optim.SGD(self.net.parameters(), lr=0.001)
         self.optimizer_q_value_critic_1 = torch.optim.Adam(self.critic_1.parameters(),
-                                                           lr=1e-4,
+                                                           lr=1e-3,
                                                            betas=(0.9, 0.999),
                                                            eps=1e-08,
                                                            weight_decay=1e-6,
@@ -57,7 +57,7 @@ class Agent:
                                                            )
 
         self.optimizer_q_value_critic_2 = torch.optim.Adam(self.critic_2.parameters(),
-                                                           lr=1e-4,
+                                                           lr=1e-3,
                                                            betas=(0.9, 0.999),
                                                            eps=1e-08,
                                                            weight_decay=1e-6,
@@ -229,7 +229,7 @@ class Agent:
             # l_a += -torch.mean(torch.log(v_policy[self.i_s]+1e-8)*Qvalue[self.i_s]) # Note: Maximising Q_value of the policy
             l_a += self.loss_fn(v_policy[self.i_s].gather(-1, star_p), Q_target[self.i_s]-chosen_action_Q)
         l_a.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=5, norm_type=2)
+        #torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=5, norm_type=2)
         self.optimizer_actor_policy_gradient.step()
 
         td_errors = 0.
@@ -384,8 +384,8 @@ class Agent:
         #reward_table_0 = (torch.exp(reward_table_0 * strength_coeff_r) - 1) / (torch.exp(torch.tensor(strength_coeff_r).to(self.device)) - 1)
         #reward_table_1 = (torch.exp(reward_table_1 * strength_coeff_r) - 1) / (torch.exp(torch.tensor(strength_coeff_r).to(self.device)) - 1)
         reward_table = torch.cat([reward_table_0, reward_table_1],dim=0)
-        punishment_table_0 = torch.linspace(0.3, 0.3, no_steps // 2).to(self.device)
-        punishment_table_1 = torch.linspace(0.1, 0.9, no_steps // 2).to(self.device)
+        punishment_table_0 = torch.linspace(1., 0.3, no_steps // 2).to(self.device)
+        punishment_table_1 = torch.linspace(0.1, 1., no_steps // 2).to(self.device)
         #punishment_table_0 = (torch.exp(punishment_table_0 * strength_coeff_p) - 1) / (torch.exp(torch.tensor(strength_coeff_p).to(self.device)) - 1)
         #punishment_table_1 = (torch.exp(punishment_table_1 * strength_coeff_p) - 1) / (torch.exp(torch.tensor(strength_coeff_p).to(self.device)) - 1)
         punishment_table = torch.cat([punishment_table_0, punishment_table_1], dim=0)
