@@ -24,7 +24,7 @@ num_m_bits = 10
 no_of_states = 14  # + num_e_bits + num_m_bits
 alpha = 1.
 epsilon = 1e-2
-gamma = 0.5
+gamma = 0.4
 tau = 0.0005
 no_of_games = 50
 no_of_rounds = 9
@@ -53,7 +53,7 @@ critic_2.to(device)
 valueFunc = Estimators(alpha, epsilon, gamma, tau, device, no_of_actions, v_min=-no_of_games * no_of_rounds,
                        v_max=no_of_games * no_of_rounds)
 agent = Agent(actor,target_actor, critic_1, critic_2, target_critic_1,target_critic_2, valueFunc, no_of_states, num_e_bits, num_m_bits, device)
-agent.BATCH_SIZE = 32
+agent.BATCH_SIZE = 16
 
 game = Game(valueFunc, agent, device, no_of_rounds)
 game.game_cycles = 100
@@ -82,7 +82,7 @@ for i in range(1, game.game_cycles + 1):
     start = time.time()
     print("GAME CYCLE : ", i)
     rewards, a_val, losses,head_rewards,tids = game.playntrain(game, dataset, games=no_of_games)
-    R = round((sum(rewards)/(no_of_rounds*3*3*no_of_games))*100, 3)
+    R = round((sum(rewards) / (no_of_rounds * 3 * 3 * (no_of_games-1))) * 100, 3)
     print("REWARDS : ",R, "% ||  RANDOM GUESSES: ",game.agent.no_of_guesses," || NOISE EPS: ",game.agent.vF.epsilon)
     end = time.time()
     t = end - start
