@@ -1,4 +1,5 @@
 import time
+from operator import itemgetter
 
 import torch
 import torch.nn as nn
@@ -39,17 +40,17 @@ class ValueNetwork(nn.Module):
         self.hidden_state = self.input + self.hidden_size
         self.act = nn.LeakyReLU(0.2)
 
-        self.linear1 = nn.Linear(self.input, self.hidden_size, bias=True)
-        self.mul_gate = nn.Linear(64, self.hidden_size, bias=True)
-        self.shift_gate = nn.Linear(64, self.hidden_size, bias=True)
+        self.linear1 = nn.Linear(self.input, self.hidden_size* 2, bias=True)
+        self.mul_gate = nn.Linear(64, self.hidden_size* 2, bias=True)
+        self.shift_gate = nn.Linear(64, self.hidden_size* 2, bias=True)
         self.head_groups = nn.ModuleDict({
-            "id0": MultiHeadLayer(self.hidden_size,self.no_of_actions),
-            "id1": MultiHeadLayer(self.hidden_size, self.no_of_actions),
-            "id2": MultiHeadLayer(self.hidden_size, self.no_of_actions)
+            "id0": MultiHeadLayer(self.hidden_size* 2,self.no_of_actions),
+            "id1": MultiHeadLayer(self.hidden_size* 2, self.no_of_actions),
+            "id2": MultiHeadLayer(self.hidden_size* 2, self.no_of_actions)
         })
-        self.LNorm1 = nn.LayerNorm(self.hidden_size)
-        self.LNorm_mul = nn.LayerNorm(self.hidden_size)
-        self.LNorm_shift = nn.LayerNorm(self.hidden_size)
+        self.LNorm1 = nn.LayerNorm(self.hidden_size* 2)
+        self.LNorm_mul = nn.LayerNorm(self.hidden_size* 2)
+        self.LNorm_shift = nn.LayerNorm(self.hidden_size* 2)
 
         self.task_indicator = nn.Embedding(3, 64)
         self.apply(self._init_weights)
@@ -75,7 +76,7 @@ class ValueNetwork(nn.Module):
 
         context = torch.cat([state], dim=1)
         x = self.act(self.linear1(context))
-        #x = self.LNorm1(x)
+        x = self.LNorm1(x)
         # mul = self.act(self.mul_gate(task_embedded_id))
         # mul = self.LNorm_mul(mul)
         # shift = self.act(self.shift_gate(task_embedded_id))
@@ -91,6 +92,38 @@ class ValueNetwork(nn.Module):
         o_2 = []
         o_3 = []
         i = 0
+        # ht0 = self.head_groups["id0"](x)
+        # ht1 = self.head_groups["id1"](x)
+        # ht2 = self.head_groups["id2"](x)
+        # indices = {"id0": [], "id1": [], "id2": []}
+        # for idx, key in enumerate(keys):
+        #     if key in indices:
+        #         indices[key].append(idx)
+        #
+        # N_total = len(keys)
+        # H = len(ht0)
+        # D = ht0[0].shape[1]
+        # ho0 = torch.empty((N_total, D,H), device=self.device)
+        # ho1 = torch.empty((N_total, D,H), device=self.device)
+        # ls3 = torch.empty((N_total, D,H), device=self.device)
+        #
+        # if indices.get("id0"):
+        #     idx_tensor_0 = torch.tensor(indices["id0"], dtype=torch.long, device=self.device)
+        #     ho0[:,:,0] = ho0[:,:,0].index_copy(0, idx_tensor_0, ht0[0])
+        #     ho0[:, :, 1] = ho0[:, :, 1].index_copy(0, idx_tensor_0, ht0[1])
+        #     ho0[:, :, 2] = ho0[:, :, 2].index_copy(0, idx_tensor_0, ht0[2])
+        # if indices.get("id1"):
+        #     idx_tensor_1 = torch.tensor(indices["id1"], dtype=torch.long, device=self.device)
+        #     ho1[:, :, 0] = ho1[:, :, 0].index_copy(0, idx_tensor_1, ht1[0])
+        #     ho1[:, :, 1] = ho1[:, :, 1].index_copy(0, idx_tensor_1, ht1[1])
+        #     ho1[:, :, 2] = ho1[:, :, 2].index_copy(0, idx_tensor_1, ht1[2])
+        #
+        # if indices.get("id2"):
+        #     idx_tensor_2 = torch.tensor(indices["id2"], dtype=torch.long, device=self.device)
+        #     ls3[:, :, 0] = ls3[:, :, 0].index_copy(0, idx_tensor_2, ht2[0])
+        #     ls3[:, :, 1] = ls3[:, :, 1].index_copy(0, idx_tensor_2, ht2[1])
+        #     ls3[:, :, 2] = ls3[:, :, 2].index_copy(0, idx_tensor_2, ht2[2])
+
         for key in keys:
             x_key = x[i,:].unsqueeze(0)
             selected_heads = self.head_groups[key]
