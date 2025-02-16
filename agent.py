@@ -376,7 +376,7 @@ class Agent:
         ref_value_max_s2 = ref_value_s2 + ref_value_s2 * std / 100
         ref_value_min_s3 = ref_value_s3 - ref_value_s3 * std / 100
         ref_value_max_s3 = ref_value_s3 + ref_value_s3 * std / 100
-        no_steps = 1000
+        no_steps = 256
         strength_coeff_r = 1.
         strength_coeff_p = 1.
         additional_reward = 0.
@@ -385,7 +385,7 @@ class Agent:
         #reward_table_0 = (torch.exp(reward_table_0 * strength_coeff_r) - 1) / (torch.exp(torch.tensor(strength_coeff_r).to(self.device)) - 1)
         #reward_table_1 = (torch.exp(reward_table_1 * strength_coeff_r) - 1) / (torch.exp(torch.tensor(strength_coeff_r).to(self.device)) - 1)
         reward_table = torch.cat([reward_table_0, reward_table_1],dim=0)
-        punishment_table_0 = torch.linspace(1., 0.3, no_steps // 2).to(self.device)
+        punishment_table_0 = torch.linspace(1., 0.1, no_steps // 2).to(self.device)
         punishment_table_1 = torch.linspace(0.1, 1., no_steps // 2).to(self.device)
         #punishment_table_0 = (torch.exp(punishment_table_0 * strength_coeff_p) - 1) / (torch.exp(torch.tensor(strength_coeff_p).to(self.device)) - 1)
         #punishment_table_1 = (torch.exp(punishment_table_1 * strength_coeff_p) - 1) / (torch.exp(torch.tensor(strength_coeff_p).to(self.device)) - 1)
