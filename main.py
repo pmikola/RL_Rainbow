@@ -56,7 +56,7 @@ agent = Agent(actor,target_actor, critic_1, critic_2, target_critic_1,target_cri
 agent.BATCH_SIZE = 16
 
 game = Game(valueFunc, agent, device, no_of_rounds)
-game.game_cycles = 100
+game.game_cycles = 300
 game.games = no_of_games
 cmap = plt.cm.get_cmap('hsv', game.game_cycles + 5)
 r_data = []
@@ -95,12 +95,29 @@ for i in range(1, game.game_cycles + 1):
         r[1] = R
     else:
         r[2] = R
-
     game.total_counter = 0
-    game.agent.vF.epsilon +=1e-2#(1/(game.game_cycles*2))
+    game.agent.vF.epsilon +=0.6e-2#(1/(game.game_cycles*2))
     game.task_id = random.randint(0,2)
-    # if game.cycle % 5 == 0:
-    #     game.task_id = int(argmin(r))
+    if game.cycle > 200 == 0:
+        for param_group in game.agent.optimizer_q_value_critic_1.param_groups:
+            param_group['lr'] = param_group['lr']*0.99
+        for param_group in game.agent.optimizer_q_value_critic_2.param_groups:
+            param_group['lr'] = param_group['lr']*0.99
+        for param_group in game.agent.optimizer_actor_policy.param_groups:
+            param_group['lr'] = param_group['lr']*0.99
+        game.task_id = int(argmin(r))
+        for params in  game.agent.actor.parameters():
+            params.requires_grad = False
+        for params in  game.agent.critic_1.parameters():
+            params.requires_grad = False
+        for params in  game.agent.critic_2.parameters():
+            params.requires_grad = False
+        for params in  game.agent.actor.head_groups[game.task_id].parameters():
+            params.requires_grad = True
+        for params in  game.agent.critic_1.head_groups[game.task_id].parameters():
+            params.requires_grad = True
+        for params in  game.agent.critic_2.head_groups[game.task_id].parameters():
+            params.requires_grad = True
 
     # Note: test  network with learning on
     if game.cycle >= game.game_cycles - 3:

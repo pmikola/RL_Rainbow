@@ -309,7 +309,7 @@ class Agent:
         explore_coef = self.vF.epsilon
         hair_type, skin_type, _ = dataset.decode_input(state)
         if self.total_counter %9*5 == 0:
-            self.eps = (1e-6 + 0.999 * np.exp(-1.3e-2 * self.total_counter))
+            self.eps = (1e-6 + 0.999 * np.exp(-1e-3 * self.total_counter))
         if game.cycle > game.game_cycles * 0.95:
             self.eps = 0.
         if  np.random.uniform(0,self.eps) > explore_coef:
@@ -328,7 +328,7 @@ class Agent:
         explore_coef = self.vF.epsilon
         hair_type, skin_type, _ = dataset.decode_input(state_next)
         if self.total_counter % 9*5 == 0:
-            self.eps = (1e-6 + 0.999 * np.exp(-1.3e-2 * self.total_counter))
+            self.eps = (1e-6 + 0.999 * np.exp(-1e-3 * self.total_counter))
         if game.cycle > game.game_cycles * 0.95:
             self.eps = 0.
         if  np.random.uniform(0,self.eps) > explore_coef:
