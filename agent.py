@@ -64,12 +64,12 @@ class Agent:
                                                            amsgrad=True
                                                            )
 
-        self.optimizer_actor_policy_gradient = torch.optim.Adam(self.actor.parameters(),
-                                                                lr=1e-3,
-                                                                betas=(0.9, 0.999),
-                                                                eps=1e-08,
-                                                                weight_decay=1e-6,
-                                                                amsgrad=True)
+        self.optimizer_actor_policy = torch.optim.Adam(self.actor.parameters(),
+                                                       lr=1e-3,
+                                                       betas=(0.9, 0.999),
+                                                       eps=1e-08,
+                                                       weight_decay=1e-6,
+                                                       amsgrad=True)
 
         self.Q_MAX = 0.
         self.lossMSE = nn.MSELoss().to(self.device)
@@ -216,7 +216,7 @@ class Agent:
         Q_current_1 = self.critic_1(s.detach(), v_policy, tid.detach())
         Q_current_2 = self.critic_2(s.detach(), v_policy, tid.detach())
         #Qvalue = self.critic_1(s.detach(), v_policy, tid)
-        self.optimizer_actor_policy_gradient.zero_grad()
+        self.optimizer_actor_policy.zero_grad()
         l_a = 0.
         for i in range(0, 3):
             self.i_s = i
@@ -231,7 +231,7 @@ class Agent:
             l_a += self.loss_fn(v_policy[self.i_s].gather(-1, star_p), Q_target[self.i_s]-chosen_action_Q1+chosen_action_Q2)
         l_a.backward()
         #torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=5, norm_type=2)
-        self.optimizer_actor_policy_gradient.step()
+        self.optimizer_actor_policy.step()
 
         td_errors = 0.
         for i in range(3):
@@ -309,7 +309,7 @@ class Agent:
         explore_coef = self.vF.epsilon
         hair_type, skin_type, _ = dataset.decode_input(state)
         if self.total_counter %9*5 == 0:
-            self.eps = (1e-6 + 0.999 * np.exp(-1e-3 * self.total_counter))
+            self.eps = (1e-6 + 0.999 * np.exp(-1.3e-2 * self.total_counter))
         if game.cycle > game.game_cycles * 0.95:
             self.eps = 0.
         if  np.random.uniform(0,self.eps) > explore_coef:
@@ -328,7 +328,7 @@ class Agent:
         explore_coef = self.vF.epsilon
         hair_type, skin_type, _ = dataset.decode_input(state_next)
         if self.total_counter % 9*5 == 0:
-            self.eps = (1e-6 + 0.999 * np.exp(-1e-3 * self.total_counter))
+            self.eps = (1e-6 + 0.999 * np.exp(-1.3e-2 * self.total_counter))
         if game.cycle > game.game_cycles * 0.95:
             self.eps = 0.
         if  np.random.uniform(0,self.eps) > explore_coef:

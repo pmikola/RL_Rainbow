@@ -127,7 +127,7 @@ class ValueNetwork(nn.Module):
         for key in keys:
             x_key = x[i,:].unsqueeze(0)
             selected_heads = self.head_groups[key]
-            ls_out = selected_heads(x_key)
+            ls_out = selected_heads(x_key.requires_grad_())
             o_1.append(ls_out[0])
             o_2.append(ls_out[1])
             o_3.append(ls_out[2])
@@ -269,7 +269,7 @@ class QNetwork(nn.Module):
         for key in keys:
             x_key = x[i, :].unsqueeze(0)
             selected_heads = self.head_groups[key]
-            ls_out = selected_heads(x_key)
+            ls_out = selected_heads(x_key.requires_grad_())
             o_1.append(ls_out[0])
             o_2.append(ls_out[1])
             o_3.append(ls_out[2])
