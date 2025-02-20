@@ -56,7 +56,7 @@ agent = Agent(actor,target_actor, critic_1, critic_2, target_critic_1,target_cri
 agent.BATCH_SIZE = 16
 
 game = Game(valueFunc, agent, device, no_of_rounds)
-game.game_cycles = 100
+game.game_cycles = 150
 game.games = no_of_games
 cmap = plt.cm.get_cmap('hsv', game.game_cycles + 5)
 r_data = []
@@ -96,9 +96,9 @@ for i in range(1, game.game_cycles + 1):
     else:
         r[2] = R
     game.total_counter = 0
-    game.agent.vF.epsilon +=1e-2#(1/(game.game_cycles*2))
+    game.agent.vF.epsilon +=1.2e-2#(1/(game.game_cycles*2))
     game.task_id = random.randint(0,2)
-    if game.cycle > 50:
+    if game.cycle > 100:
         for param_group in game.agent.optimizer_q_value_critic_1.param_groups:
             param_group['lr'] = param_group['lr']*0.995
         for param_group in game.agent.optimizer_q_value_critic_2.param_groups:

@@ -6,12 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-# POLICY ARCHITECTURE
-from torch import Tensor
-
-LOG_SIG_MAX = 2
-LOG_SIG_MIN = -5
-
 
 class MultiHeadLayer(nn.Module):
     def __init__(self, hidden_size, no_of_actions):
@@ -20,6 +14,8 @@ class MultiHeadLayer(nn.Module):
             nn.Sequential(
             nn.LayerNorm(hidden_size),
             #*[ResidualBlock(hidden_size, dropout=0.1) for _ in range(1)],
+            nn.Linear(hidden_size, hidden_size, bias=True),
+            nn.LeakyReLU(0.2),
             nn.Linear(hidden_size, no_of_actions, bias=True))
             for _ in range(3)
         ])
@@ -44,13 +40,13 @@ class ValueNetwork(nn.Module):
         self.mul_gate = nn.Linear(64, self.hidden_size* 2, bias=True)
         self.shift_gate = nn.Linear(64, self.hidden_size* 2, bias=True)
         self.head_groups = nn.ModuleDict({
-            "id0": MultiHeadLayer(self.hidden_size* 2,self.no_of_actions),
-            "id1": MultiHeadLayer(self.hidden_size* 2, self.no_of_actions),
-            "id2": MultiHeadLayer(self.hidden_size* 2, self.no_of_actions)
+            "id0": MultiHeadLayer(self.hidden_size*2,self.no_of_actions),
+            "id1": MultiHeadLayer(self.hidden_size*2, self.no_of_actions),
+            "id2": MultiHeadLayer(self.hidden_size*2, self.no_of_actions)
         })
-        self.LNorm1 = nn.LayerNorm(self.hidden_size* 2)
-        self.LNorm_mul = nn.LayerNorm(self.hidden_size* 2)
-        self.LNorm_shift = nn.LayerNorm(self.hidden_size* 2)
+        self.LNorm1 = nn.LayerNorm(self.hidden_size*2)
+        self.LNorm_mul = nn.LayerNorm(self.hidden_size*2)
+        self.LNorm_shift = nn.LayerNorm(self.hidden_size*2)
 
         self.task_indicator = nn.Embedding(3, 64)
         self.apply(self._init_weights)
